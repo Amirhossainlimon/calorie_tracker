@@ -1,30 +1,34 @@
-# 🍏 CalorieSnap – Calorie Tracker App
+# 🍏 CalorieSnap
 
-CalorieSnap is a modern and user-friendly Flutter application that helps users track their daily calorie intake, manage meals, and monitor their daily calorie goals.
+### Track Your Calories. Build Healthy Habits.
+
+CalorieSnap is a modern and easy-to-use calorie tracking application built with Flutter. It helps users monitor their daily calorie intake, manage meals, and stay on track with their daily calorie goals.
 
 ## ✨ Features
 
-- **Splash Screen:** Animated splash screen with CalorieSnap branding and logo.
-- **Daily Calorie Tracking:** Monitor total calories consumed throughout the day.
-- **Daily Goal:** Set and customize your daily calorie goal.
-- **Add Food:** Add food items with calorie amounts and meal categories.
-- **Edit Food:** Update existing food information.
-- **Delete Food:** Remove food items with an undo option.
-- **Meal Categories:** Organize food into Breakfast, Lunch, Dinner, and Snack.
-- **Search Food:** Quickly find food items.
-- **Daily Summary:** View total intake, daily goal, and remaining calories.
-- **Meal Breakdown:** View calorie distribution by meal category.
-- **Modern UI:** Clean design with a fresh green-and-white theme.
+- 🎨 **Splash Screen** – Animated splash screen with custom app logo.
+- 🔥 **Daily Calorie Tracking** – Track total calories consumed.
+- 🎯 **Daily Calorie Goal** – Set and update your daily calorie target.
+- ➕ **Add Food** – Add food items with calorie amounts.
+- ✏️ **Edit Food** – Update food information anytime.
+- 🗑️ **Delete Food** – Delete food entries with an undo option.
+- 🍽️ **Meal Categories** – Breakfast, Lunch, Dinner, and Snack.
+- 🔍 **Search Food** – Find food items quickly.
+- 📊 **Daily Summary** – View total calories, daily goal, and remaining calories.
+- 📈 **Meal Breakdown** – Monitor calorie distribution across meals.
+- 🌿 **Modern UI** – Clean green-and-white design with Material 3.
 
-## 🛠️ Technologies Used
+## 🛠️ Built With
 
-- Flutter
-- Dart
-- Material Design 3
+| Technology | Purpose              |
+| ---------- | -------------------- |
+| Flutter    | UI Development       |
+| Dart       | Programming Language |
+| Material 3 | App Design           |
 
-## 📱 Screenshots
+## 📱 App Preview
 
-Add your application screenshots here.
+\<!-- Add your app screenshots here -->
 
 ## 📂 Project Structure
 
@@ -40,34 +44,47 @@ calorie_tracker/
 
 ## 🚀 Getting Started
 
-### 1. Clone the Repository
+**1. Clone the repository**
 
 ```bash
-git clone https://github.com/Amirhossainlimon/calorie-snap.git
+git clone https://github.com/Amirhossainlimon/calorie_tracker.git
 ```
 
-### 2. Open the Project
+**2. Navigate to the project directory**
 
 ```bash
-cd calorie-snap
+cd calorie_tracker
 ```
 
-### 3. Install Dependencies
+**3. Install dependencies**
 
 ```bash
 flutter pub get
 ```
 
-### 4. Run the Application
+**4. Run the application**
 
 ```bash
 flutter run
 ```
 
-## 💾 Data Storage
+## 💾 Data Management
 
-This project currently uses an in-memory Dart List to manage food entries. Food data is not permanently stored and resets when the application restarts.
+Currently, CalorieSnap uses a local Dart List to manage food entries. No database, API, or Firebase integration is required. Food entries reset when the application restarts.
 
-## 🎯 Project Goal
+## 🎯 Project Purpose
 
-The goal of Cal
+This project was developed to practice Flutter UI development, state management using StatefulWidget and setState, form validation, CRUD operations, and building a complete mobile application interface.
+
+## 👨‍💻 Developer
+
+**Amir Hossain Limon**
+
+- GitHub: [https://github.com/Amirhossainlimon](https://github.com/Amirhossainlimon)
+- Portfolio: [https://amir-hossain-limon-16.vercel.app/](https://amir-hossain-limon-16.vercel.app/)
+
+---
+
+If you find this project useful, don't forget to ⭐ the repository!
+
+**Made with ❤️ using Flutter**
