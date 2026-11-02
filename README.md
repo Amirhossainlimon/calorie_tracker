@@ -75,6 +75,13 @@ Currently, CalorieSnap uses a local Dart List to manage food entries. No databas
 ## 🎯 Project Purpose
 
 This project was developed to practice Flutter UI development, state management using StatefulWidget and setState, form validation, CRUD operations, and building a complete mobile application interface.
+## 🌐 Live Demo
+
+**Try CalorieSnap Online:**  
+[🚀 Open CalorieSnap](https://caloriesnap-tau.vercel.app/)
+
+No installation required — use CalorieSnap directly from your browser!
+
 
 ## 👨‍💻 Developer
 
