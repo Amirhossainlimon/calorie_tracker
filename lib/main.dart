@@ -1,8 +1,10 @@
-import 'package:calorie_tracker/splash_screen.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'splash_screen.dart';
 
-void main() => runApp(CalorieTrackerApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const CalorieTrackerApp());
+}
 
 const green = Color(0xFF75B82A);
 const darkGreen = Color(0xFF397B19);
@@ -23,7 +25,7 @@ class CalorieTrackerApp extends StatelessWidget {
         scaffoldBackgroundColor: bg,
         colorScheme: ColorScheme.fromSeed(seedColor: green),
       ),
-      home:SplashScreen(),
+      home: const SplashScreen(),
     );
   }
 }
@@ -51,40 +53,58 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final List<FoodEntry> foods = [];
-  final searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
-  final categories = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snack'];
+  final List<String> categories = const [
+    'All',
+    'Breakfast',
+    'Lunch',
+    'Dinner',
+    'Snack',
+  ];
 
   double dailyGoal = 2000;
   String selectedCategory = 'All';
   String searchQuery = '';
 
   double get total =>
-      foods.fold(0, (sum, food) => sum + food.calories);
+      foods.fold<double>(0, (sum, food) => sum + food.calories);
 
   double get remaining => dailyGoal - total;
 
-  double get progress => (total / dailyGoal).clamp(0.0, 1.0);
+  double get progress =>
+      dailyGoal <= 0 ? 0 : (total / dailyGoal).clamp(0.0, 1.0);
 
-  String format(double value) =>
-      value == value.roundToDouble()
-          ? value.toStringAsFixed(0)
-          : value.toStringAsFixed(1);
+  String format(double value) {
+    return value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(1);
+  }
 
   String get today {
     const months = [
-      'January', 'February', 'March', 'April',
-      'May', 'June', 'July', 'August',
-      'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
+
     final now = DateTime.now();
     return '${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
   List<FoodEntry> get filteredFoods {
     return foods.where((food) {
-      final matchesCategory = selectedCategory == 'All' ||
-          food.category == selectedCategory;
+      final matchesCategory =
+          selectedCategory == 'All' || food.category == selectedCategory;
       final matchesSearch =
       food.name.toLowerCase().contains(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
@@ -115,169 +135,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> showFoodForm({FoodEntry? food}) async {
-    final nameController =
-    TextEditingController(text: food?.name ?? '');
-    final calorieController = TextEditingController(
-      text: food == null ? '' : format(food.calories),
-    );
-
-    final formKey = GlobalKey<FormState>();
-    String category = food?.category ?? 'Breakfast';
-
-    await showModalBottomSheet(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (context, setSheetState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
-              ),
-              child: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        food == null ? 'Add Your Food' : 'Edit Food',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: ink,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+      builder: (_) => FoodFormSheet(
+        food: food,
+        categories: categories.skip(1).toList(),
+        inputStyle: inputStyle,
+        onSave: (savedFood) {
+          if (!mounted) return;
 
-                      TextFormField(
-                        controller: nameController,
-                        textCapitalization: TextCapitalization.words,
-                        decoration: inputStyle(
-                          'Food Name',
-                          Icons.restaurant,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Enter food name';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      TextFormField(
-                        controller: calorieController,
-                        keyboardType:
-                        const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: inputStyle(
-                          'Calories (kcal)',
-                          Icons.local_fire_department,
-                        ),
-                        validator: (value) {
-                          final number =
-                          double.tryParse(value?.trim() ?? '');
-
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Enter calorie amount';
-                          }
-
-                          if (number == null ||
-                              !number.isFinite ||
-                              number <= 0) {
-                            return 'Enter a valid positive number';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      DropdownButtonFormField<String>(
-                        value: category,
-                        decoration: inputStyle(
-                          'Meal Category',
-                          Icons.category_outlined,
-                        ),
-                        items: categories.skip(1).map((item) {
-                          return DropdownMenuItem(
-                            value: item,
-                            child: Text(item),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setSheetState(() => category = value);
-                          }
-                        },
-                      ),
-
-                      const SizedBox(height: 22),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: green,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: () {
-                            if (!formKey.currentState!.validate()) return;
-
-                            setState(() {
-                              if (food == null) {
-                                foods.insert(
-                                  0,
-                                  FoodEntry(
-                                    name: nameController.text.trim(),
-                                    calories: double.parse(
-                                      calorieController.text.trim(),
-                                    ),
-                                    category: category,
-                                    addedAt: DateTime.now(),
-                                  ),
-                                );
-                              } else {
-                                food.name = nameController.text.trim();
-                                food.calories = double.parse(
-                                  calorieController.text.trim(),
-                                );
-                                food.category = category;
-                              }
-                            });
-
-                            Navigator.pop(sheetContext);
-                          },
-                          child: Text(
-                            food == null ? 'Add Food' : 'Save Changes',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
+          setState(() {
+            if (food == null) {
+              foods.insert(0, savedFood);
+            } else {
+              food.name = savedFood.name;
+              food.calories = savedFood.calories;
+              food.category = savedFood.category;
+            }
+          });
         },
       ),
     );
-
-    nameController.dispose();
-    calorieController.dispose();
   }
 
   void deleteFood(FoodEntry food) {
@@ -292,11 +173,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         action: SnackBarAction(
           label: 'UNDO',
           onPressed: () {
+            if (!mounted) return;
             setState(() {
-              foods.insert(
-                index > foods.length ? foods.length : index,
-                food,
-              );
+              final safeIndex = index > foods.length ? foods.length : index;
+              foods.insert(safeIndex, food);
             });
           },
         ),
@@ -305,65 +185,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> changeGoal() async {
-    final controller = TextEditingController(
-      text: format(dailyGoal),
-    );
-    final formKey = GlobalKey<FormState>();
-
     final result = await showDialog<double>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Change Daily Goal'),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: controller,
-            keyboardType:
-            const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Daily Goal (kcal)',
-              border: OutlineInputBorder(),
-            ),
-            validator: (value) {
-              final number = double.tryParse(value ?? '');
-              if (number == null ||
-                  !number.isFinite ||
-                  number <= 0) {
-                return 'Enter a valid positive number';
-              }
-              return null;
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(
-                  dialogContext,
-                  double.parse(controller.text),
-                );
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
+      builder: (_) => ChangeGoalDialog(
+        initialGoal: dailyGoal,
+        formatCallback: format,
       ),
     );
 
-    controller.dispose();
+    if (!mounted || result == null) return;
 
-    if (result != null) {
-      setState(() => dailyGoal = result);
-    }
+    setState(() => dailyGoal = result);
   }
 
   @override
   Widget build(BuildContext context) {
+    final visibleFoods = filteredFoods;
+
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showFoodForm(),
@@ -422,8 +260,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ]),
               ),
             ),
-
-            if (filteredFoods.isEmpty)
+            if (visibleFoods.isEmpty)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
@@ -435,8 +272,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
-                        (context, index) => foodTile(filteredFoods[index]),
-                    childCount: filteredFoods.length,
+                        (context, index) => foodTile(visibleFoods[index]),
+                    childCount: visibleFoods.length,
                   ),
                 ),
               ),
@@ -456,11 +293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             color: const Color(0xFFEAF4DD),
             borderRadius: BorderRadius.circular(15),
           ),
-          child: const Icon(
-            Icons.spa_rounded,
-            color: darkGreen,
-            size: 27,
-          ),
+          child: const Icon(Icons.spa_rounded, color: darkGreen, size: 27),
         ),
         const SizedBox(width: 12),
         const Expanded(
@@ -482,11 +315,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-        const Icon(
-          Icons.calendar_month_rounded,
-          color: ink,
-          size: 26,
-        ),
+        const Icon(Icons.calendar_month_rounded, color: ink, size: 26),
       ],
     );
   }
@@ -517,10 +346,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               Text(
                 today,
-                style: const TextStyle(
-                  color: darkGreen,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: darkGreen, fontSize: 12),
               ),
             ],
           ),
@@ -539,7 +365,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     strokeWidth: 13,
                     strokeCap: StrokeCap.round,
                     backgroundColor: const Color(0xFFDDE2D7),
-                    valueColor: const AlwaysStoppedAnimation(green),
+                    valueColor: const AlwaysStoppedAnimation<Color>(green),
                   ),
                 ),
                 Column(
@@ -677,6 +503,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(title, style: const TextStyle(color: muted, fontSize: 10)),
           const SizedBox(height: 4),
           FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
             child: Text(
               value,
               style: const TextStyle(
@@ -720,6 +548,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             final amount = foods
                 .where((food) => food.category == category)
                 .fold<double>(0, (sum, food) => sum + food.calories);
+            final fraction = total <= 0 ? 0.0 : (amount / total).clamp(0.0, 1.0);
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -747,10 +576,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: LinearProgressIndicator(
-                      value: total == 0 ? 0 : amount / total,
+                      value: fraction,
                       minHeight: 7,
                       backgroundColor: const Color(0xFFEEF1E9),
-                      valueColor: const AlwaysStoppedAnimation(green),
+                      valueColor: const AlwaysStoppedAnimation<Color>(green),
                     ),
                   ),
                 ],
@@ -819,8 +648,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget emptyState() {
-    final searching =
-        searchQuery.isNotEmpty || selectedCategory != 'All';
+    final searching = searchQuery.isNotEmpty || selectedCategory != 'All';
 
     return Container(
       width: double.infinity,
@@ -831,11 +659,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Column(
         children: [
-          const Icon(
-            Icons.restaurant_menu,
-            size: 43,
-            color: green,
-          ),
+          const Icon(Icons.restaurant_menu, size: 43, color: green),
           const SizedBox(height: 10),
           Text(
             searching ? 'No matching food found' : 'No meals logged yet',
@@ -874,10 +698,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: const Color(0xFFEDF6E2),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
-              Icons.lunch_dining,
-              color: darkGreen,
-            ),
+            child: const Icon(Icons.lunch_dining, color: darkGreen),
           ),
           const SizedBox(width: 11),
           Expanded(
@@ -954,5 +775,262 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+}
 
+class FoodFormSheet extends StatefulWidget {
+  final FoodEntry? food;
+  final List<String> categories;
+  final InputDecoration Function(String, IconData) inputStyle;
+  final ValueChanged<FoodEntry> onSave;
+
+  const FoodFormSheet({
+    super.key,
+    this.food,
+    required this.categories,
+    required this.inputStyle,
+    required this.onSave,
+  });
+
+  @override
+  State<FoodFormSheet> createState() => _FoodFormSheetState();
+}
+
+class _FoodFormSheetState extends State<FoodFormSheet> {
+  late final TextEditingController nameController;
+  late final TextEditingController calorieController;
+  late String category;
+
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    nameController = TextEditingController(text: widget.food?.name ?? '');
+    calorieController = TextEditingController(
+      text: widget.food == null ? '' : _format(widget.food!.calories),
+    );
+    category = widget.food?.category ?? 'Breakfast';
+  }
+
+  String _format(double value) {
+    return value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(1);
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    calorieController.dispose();
+    super.dispose();
+  }
+
+  void saveFood() {
+    if (!(formKey.currentState?.validate() ?? false)) return;
+
+    final calories = double.tryParse(calorieController.text.trim());
+    if (calories == null || !calories.isFinite || calories <= 0) return;
+
+    final savedFood = FoodEntry(
+      name: nameController.text.trim(),
+      calories: calories,
+      category: category,
+      addedAt: widget.food?.addedAt ?? DateTime.now(),
+    );
+
+    widget.onSave(savedFood);
+
+    // The sheet owns its controllers. They are disposed by this State
+    // when Flutter removes the sheet after its closing transition.
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.food == null ? 'Add Your Food' : 'Edit Food',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: ink,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: nameController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration:
+                  widget.inputStyle('Food Name', Icons.restaurant),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Enter food name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: calorieController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: widget.inputStyle(
+                    'Calories (kcal)',
+                    Icons.local_fire_department,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Enter calorie amount';
+                    }
+
+                    final number = double.tryParse(value.trim());
+                    if (number == null ||
+                        !number.isFinite ||
+                        number <= 0) {
+                      return 'Enter a valid positive number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 15),
+                DropdownButtonFormField<String>(
+                  value: category,
+                  decoration: widget.inputStyle(
+                    'Meal Category',
+                    Icons.category_outlined,
+                  ),
+                  items: widget.categories.map((item) {
+                    return DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => category = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: green,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: saveFood,
+                    child: Text(
+                      widget.food == null ? 'Add Food' : 'Save Changes',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ChangeGoalDialog extends StatefulWidget {
+  final double initialGoal;
+  final String Function(double) formatCallback;
+
+  const ChangeGoalDialog({
+    super.key,
+    required this.initialGoal,
+    required this.formatCallback,
+  });
+
+  @override
+  State<ChangeGoalDialog> createState() => _ChangeGoalDialogState();
+}
+
+class _ChangeGoalDialogState extends State<ChangeGoalDialog> {
+  late final TextEditingController controller;
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController(
+      text: widget.formatCallback(widget.initialGoal),
+    );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void saveGoal() {
+    if (!(formKey.currentState?.validate() ?? false)) return;
+
+    final value = double.tryParse(controller.text.trim());
+    if (value == null || !value.isFinite || value <= 0) return;
+
+    Navigator.of(context).pop(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Change Daily Goal'),
+      content: Form(
+        key: formKey,
+        child: TextFormField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'Daily Goal (kcal)',
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Enter daily goal';
+            }
+
+            final number = double.tryParse(value.trim());
+            if (number == null || !number.isFinite || number <= 0) {
+              return 'Enter a valid positive number';
+            }
+            return null;
+          },
+          onFieldSubmitted: (_) => saveGoal(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: saveGoal,
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
 }
