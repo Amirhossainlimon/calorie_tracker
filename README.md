@@ -78,7 +78,7 @@ This project was developed to practice Flutter UI development, state management 
 ## 🌐 Live Demo
 
 **Try CalorieSnap Online:**  
-[🚀 Open CalorieSnap](https://caloriesnap-tau.vercel.app/)
+[🚀 Open CalorieSnap]([https://caloriesnap-tau.vercel.app/](https://tubular-salamander-61c976.netlify.app))
 
 No installation required — use CalorieSnap directly from your browser!
 
